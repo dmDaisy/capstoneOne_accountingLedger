@@ -1,13 +1,17 @@
 package com.pluralsight;
 
-import java.lang.reflect.Array;
+import java.lang.*;
+import java.time.LocalTime;
 import java.util.*;
 import java.io.*;
+import java.text.*;
+import java.time.*;
+
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
 
-    static ArrayList<Transaction> transactions = new ArrayList<>();
+    static ArrayList<Transaction> ledger = new ArrayList<>();
     static Scanner scanner = new Scanner(System.in);
     static final String FILE_NAME = "transactions.csv";
 
@@ -21,7 +25,7 @@ public class Main {
                 "\nX) Exit" +
                 "\nEnter your choice: ");
 
-        char choice = getUserChar();
+        char choice = getUserLetter();
         boolean running = true;
 
         while(running){
@@ -39,7 +43,33 @@ public class Main {
     }
 
     private static void loadTransactions(String fileName) {
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(FILE_NAME));
 
+            String input;
+
+            while((input = bufferedReader.readLine()) != null){
+                String[] fields = input.split("\\|");
+
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                Date date = dateFormat.parse(fields[0]);
+                LocalTime time = LocalTime.parse(fields[1]);
+                LocalDateTime localDateTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).with(time);
+
+                String description = fields[2];
+                String vendor = fields[3];
+                float amount = Float.parseFloat(fields[4]);
+
+                Transaction transaction = new Transaction(localDateTime, description, vendor, amount);
+                ledger.add(transaction);
+            }
+
+            bufferedReader.close();
+
+        } catch (Exception e) {
+            System.out.println("Exception while loading file. ");
+            e.printStackTrace();
+        }
     }
 
     private static void printArrayList(ArrayList<Transaction> list){
@@ -47,16 +77,33 @@ public class Main {
             System.out.println(transaction);
     }
 
-    private static char getUserChar() {
-        return 'A';
+    // foolproof method: guarentees to get letter (upper case) input from user
+    private static Character getUserLetter() {
+        System.out.println("Enter a letter: ");
+        while(true){
+            char c = scanner.nextLine().charAt(0);
+            if(Character.isLetter(c))
+                return Character.toUpperCase(c);
+            else
+                System.out.println("Invalid input, try again: ");
+        }
     }
 
+    // foolproof method: guarentees to get int input from user
     private static int getUserInt(){
-        return 1;
+        System.out.println("Enter an integer: ");
+        while( ! scanner.hasNextInt()){
+            System.out.println("Invalid input, enter an integer: ");
+            scanner.next();
+        }
+        int result = scanner.nextInt();
+        scanner.nextLine(); // consumes redundant \n
+
+        return result;
     }
 
     private static void addDeposit() {
-        transactions.sort(Comparator.comparing(Transaction::getDateTime));
+        ledger.sort(Comparator.comparing(Transaction::getDateTime));
     }
 
     private static void makePayment(){
@@ -72,7 +119,7 @@ public class Main {
                 "\nH) Home" +
                 "\nEnter your choice: ");
 
-        char choice = getUserChar();
+        char choice = getUserLetter();
 
         switch (choice){
             case 'A' -> displayAllEntries();
@@ -84,13 +131,13 @@ public class Main {
     }
 
     private static void displayAllEntries(){
-        transactions.sort(Comparator.comparing(Transaction::getDateTime));
-        printArrayList(transactions);
+        ledger.sort(Comparator.comparing(Transaction::getDateTime));
+        printArrayList(ledger);
     }
 
     private static void displayDeposits(){
         ArrayList<Transaction> results = new ArrayList<>();
-        for(Transaction t : transactions)
+        for(Transaction t : ledger)
             if(t.getAmount() > 0)
                 results.add(t);
         printArrayList(results);
@@ -98,7 +145,7 @@ public class Main {
 
     private static void displayPayments(){
         ArrayList<Transaction> results = new ArrayList<>();
-        for(Transaction t : transactions)
+        for(Transaction t : ledger)
             if(t.getAmount() < 0)
                 results.add(t);
         printArrayList(results);
@@ -116,6 +163,32 @@ public class Main {
 
         int choice = getUserInt();
 
-        
+        switch(choice){
+            case 1 -> {
+
+            }
+            case 2 -> {
+
+            }
+            case 3 -> {
+
+            }
+            case 4 -> {
+
+            }
+            case 5 -> {
+
+            }
+            case 0 -> {
+
+            }
+            default -> {
+
+            }
+        }
+    }
+
+    private static void getUserDateInput(){
+
     }
 }
