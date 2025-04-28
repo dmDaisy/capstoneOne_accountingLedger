@@ -4,34 +4,24 @@ import java.time.*;
 import java.util.*;
 
 public class Transaction {
-    private Date date;
-    private LocalTime time;
+    private LocalDateTime dateTime;
     private String description;
     private String vendor;
     private float amount;
 
-    public Transaction(Date date, LocalTime time, String description, String vendor, float amount) {
-        this.date = date;
-        this.time = time;
+    public Transaction(LocalDateTime dateTime, String description, String vendor, float amount) {
+        this.dateTime = dateTime;
         this.description = description;
         this.vendor = vendor;
         this.amount = amount;
     }
 
-    public Date getDate() {
-        return date;
+    public LocalDateTime getDateTime() {
+        return dateTime;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public LocalTime getTime() {
-        return time;
-    }
-
-    public void setTime(LocalTime time) {
-        this.time = time;
+    public void setDateTime(LocalDateTime dateTime) {
+        this.dateTime = dateTime;
     }
 
     public String getDescription() {
@@ -56,5 +46,15 @@ public class Transaction {
 
     public void setAmount(float amount) {
         this.amount = amount;
+    }
+
+    @Override
+    public String toString() {
+        return "Transaction{" +
+                "dateTime=" + dateTime +
+                ", description='" + description + '\'' +
+                ", vendor='" + vendor + '\'' +
+                ", amount=" + amount +
+                '}';
     }
 }
