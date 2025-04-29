@@ -1,6 +1,7 @@
 package com.pluralsight;
 
 import java.time.*;
+import java.time.format.*;
 import java.util.*;
 
 public class Transaction {
@@ -50,8 +51,10 @@ public class Transaction {
 
     @Override
     public String toString() {
+        DateTimeFormatter fullFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String formattedDateTime = dateTime.format(fullFormatter);
         return "Transaction{" +
-                "dateTime=" + dateTime +
+                "dateTime=" + formattedDateTime +
                 ", description='" + description + '\'' +
                 ", vendor='" + vendor + '\'' +
                 ", amount=" + amount +
@@ -61,6 +64,8 @@ public class Transaction {
     public String toCsvEntry(){
         LocalDate date = dateTime.toLocalDate();
         LocalTime time = dateTime.toLocalTime();
-        return String.format("%s|%s|%s|%s|%.2f", date, time, description, vendor, amount);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+        String formattedTime = time.format(formatter); // format time
+        return String.format("%s|%s|%s|%s|%.2f", date, formattedTime, description, vendor, amount);
     }
 }

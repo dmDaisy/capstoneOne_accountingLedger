@@ -1,14 +1,12 @@
 package com.pluralsight;
 
 import java.lang.*;
-import java.time.LocalTime;
+import java.time.chrono.ChronoLocalDate;
 import java.util.*;
 import java.io.*;
 import java.text.*;
 import java.time.*;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
 
     static ArrayList<Transaction> ledger = new ArrayList<>();
@@ -19,11 +17,12 @@ public class Main {
 
         loadTransactions(FILE_NAME);
 //        printArrayList(ledger); // for test
+//        System.out.println("Absolute file path: " + new File(FILE_NAME).getAbsolutePath()); // for test
 
         boolean running = true;
 
         while(running){
-            System.out.println("Welcome to your online ledger home screen! Here are the options: " +
+            System.out.println("\nWelcome to your online ledger home screen! Here are the options: " +
                     "\nD) Add deposit" +
                     "\nP) Make payment" +
                     "\nL) Ledger" +
@@ -42,11 +41,6 @@ public class Main {
                 default -> System.out.println("Invalid input, try again. ");
             }
         }
-    }
-
-    // for test: generate a given number of transactions and save to file
-    private static void generateRandomTransactions(int number){
-
     }
 
     private static void loadTransactions(String fileName) {
@@ -78,42 +72,23 @@ public class Main {
         }
     }
 
-    private static void printArrayList(ArrayList<Transaction> list){
-        System.out.println("Printing the corresponding ledger transactions...");
-        for(Transaction transaction : list)
-            System.out.println(transaction);
-    }
-
-    // foolproof method: guarentees to get int input from user
-    private static int getUserInt(){
-        System.out.println("Enter a choice in integer: ");
-        while( ! scanner.hasNextInt()){
-            System.out.println("Invalid input, enter an integer: ");
-            scanner.next();
-        }
-        int result = scanner.nextInt();
-        scanner.nextLine(); // consumes redundant \n
-
-        return result;
-    }
-
-    private static void addDeposit() throws IOException {
+    private static void addDeposit() throws Exception {
         System.out.println("Enter description: ");
         String description = scanner.nextLine();
         System.out.println("Enter vendor: ");
         String vendor = scanner.nextLine();
-        System.out.println("Enter amount: ");
-        float amount  = scanner.nextFloat();
+
+        float amount = getUserFloat();
+        if(amount < 0) amount *= -1;
+
         LocalDateTime dateTime = LocalDateTime.now();
 
         Transaction t = new Transaction(dateTime, description, vendor, amount);
-        BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME, true));
-        writer.write(t.toCsvEntry());
-        writer.newLine(); // better than adding "\n"
-        System.out.println("Deposit added to ledger successfully! ");
+        ledger.add(t);
+        addTransactionToCsvFile(t, "deposit");
     }
 
-    private static void addPayment() throws IOException {
+    private static void addPayment() throws Exception {
         System.out.println("Enter debit card last 4 digits: ");
         String debitInfo;
         while((debitInfo = scanner.nextLine()).length() != 4)
@@ -121,13 +96,22 @@ public class Main {
         String description = "Invoice " + debitInfo + " paid";
         System.out.println("Enter vendor: ");
         String vendor = scanner.nextLine();
-        System.out.println("Enter amount: ");
-        float amount = scanner.nextFloat();
 
+        float amount = getUserFloat();
+        if(amount > 0) amount *= -1; // guarentee the amount is negative
 
+        LocalDateTime dateTime = LocalDateTime.now();
+
+        Transaction t = new Transaction(dateTime, description, vendor, amount);
+        ledger.add(t);
+        addTransactionToCsvFile(t, "payment");
     }
 
-    private static void displayLedger(){
+    private static void displayLedger() throws Exception{
+
+        // sort ledger by time
+        ledger.sort(Comparator.comparing(Transaction::getDateTime).reversed());
+
         System.out.println("Welcome to the Ledger, here are the options: " +
                 "\nA) Display all" +
                 "\nD) Deposits" +
@@ -139,7 +123,7 @@ public class Main {
         String choice = scanner.nextLine().toUpperCase();
 
         switch (choice){
-            case "A" -> displayAllEntries();
+            case "A" -> printArrayList(ledger);
             case "D" -> displayDeposits();
             case "P" -> displayPayments();
             case "R" -> displayReports();
@@ -148,65 +132,137 @@ public class Main {
         }
     }
 
-    private static void displayAllEntries(){
-        ledger.sort(Comparator.comparing(Transaction::getDateTime));
-        printArrayList(ledger);
-    }
-
     private static void displayDeposits(){
-        ArrayList<Transaction> results = new ArrayList<>();
+        System.out.println("Printing all deposits: ");
         for(Transaction t : ledger)
             if(t.getAmount() > 0)
-                results.add(t);
-        printArrayList(results);
+                System.out.println(t);
     }
 
     private static void displayPayments(){
-        ArrayList<Transaction> results = new ArrayList<>();
+        System.out.println("Printing all payments: ");
         for(Transaction t : ledger)
             if(t.getAmount() < 0)
-                results.add(t);
-        printArrayList(results);
+                System.out.println(t);
     }
 
-    private static void displayReports(){
+    private static void displayReports() throws Exception {
         System.out.println("Welcome to the reports page, here are the options:" +
                 "\n1) Month to date" +
                 "\n2) Previous month" +
                 "\n3) Year to date" +
                 "\n4) Previous year" +
                 "\n5) Search by vendor" +
-                "\n0) Back" +
-                "\nEnter your choice: ");
+                "\n0) Back");
 
         int choice = getUserInt();
 
         switch(choice){
-            case 1 -> {
-
-            }
-            case 2 -> {
-
-            }
-            case 3 -> {
-
-            }
-            case 4 -> {
-
-            }
-            case 5 -> {
-
-            }
-            case 0 -> {
-
+            case 1 -> displayMonthToDate();
+            case 2 -> displayPreviousMonth();
+            case 3 -> displayYearToDate();
+            case 4 -> displayPreviousYear();
+            case 5 -> searchByVendor();
+            case 0 -> { // quest: going back to the REPORT page???
+                System.out.println("Going back to ledger page...");
+                displayLedger();
             }
             default -> {
-
+                System.out.println("Invalid input, try again. ");
+                displayReports();
             }
         }
     }
 
-    private static void getUserDateInput(){
+    private static void displayMonthToDate(){
 
     }
+
+    private static void displayPreviousMonth(){
+
+    }
+
+    private static void displayYearToDate() {
+    }
+
+    private static void displayPreviousYear(){
+
+    }
+
+    private static void searchByVendor() {
+    }
+
+
+
+
+
+
+
+
+
+
+
+    //  helper methods at the bottom
+//
+//
+    // for test: generate a given number of transactions and save to file
+    private static void generateRandomTransactions(int number){
+
+    }
+
+    private static void printArrayList(ArrayList<Transaction> list){
+        System.out.println("Printing the corresponding ledger transactions...");
+        for(Transaction transaction : list)
+            System.out.println(transaction);
+    }
+
+    // foolproof method: guarentees to get int input from user
+    private static int getUserInt(){
+        System.out.println("Enter a choice in integer: ");
+        while( ! scanner.hasNextInt()){
+            System.out.println("Invalid input, enter an integer: ");
+            scanner.nextLine(); // or scanner.next() ?
+        }
+        int result = scanner.nextInt();
+        scanner.nextLine(); // consumes redundant \n, or scanner.next() ?
+
+        return result;
+    }
+
+    // foolproof method: guarentees to get float input from user
+    private static float getUserFloat(){
+        System.out.println("Enter amount: ");
+        while( ! scanner.hasNextFloat()){
+            System.out.println("Invalid input, enter a float: ");
+            scanner.nextLine(); // or scanner.next() ?
+        }
+        float result = scanner.nextFloat();
+        scanner.nextLine(); // consumes redundant \n, or scanner.next() ?
+
+        return result;
+    }
+
+//    private static void addTransactionToCsvFile(Transaction t, String transactionType) throws Exception{
+//        BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME, true));
+//        writer.write(t.toCsvEntry());
+//        writer.newLine(); // better than adding "\n"
+//        System.out.println("The following " + transactionType + " successfully added to ledger! ");
+//        System.out.println(t);
+//    }
+
+    // java syntax: try-with-resources
+    // automatically closes BufferedWriter even if an error occurs
+    private static void addTransactionToCsvFile(Transaction t, String transactionType) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME, true))) {
+            writer.write(t.toCsvEntry());
+//            System.out.println(t.toCsvEntry());
+            writer.newLine(); // better than adding "\n"
+            System.out.println("The following " + transactionType + " successfully added to ledger!");
+            System.out.println(t);
+        } catch(IOException e){
+            System.out.println("Error writing to file. ");
+            e.printStackTrace();
+        }
+    }
+
 }
