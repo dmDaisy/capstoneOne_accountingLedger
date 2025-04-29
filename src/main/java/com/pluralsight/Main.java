@@ -15,31 +15,38 @@ public class Main {
     static Scanner scanner = new Scanner(System.in);
     static final String FILE_NAME = "transactions.csv";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception{
+
         loadTransactions(FILE_NAME);
+//        printArrayList(ledger); // for test
 
-        System.out.println("Welcome to home screen! Here is the menu: " +
-                "\nD) Add deposit" +
-                "\nP) Make payment" +
-                "\nL) Ledger" +
-                "\nX) Exit" +
-                "\nEnter your choice: ");
-
-        char choice = getUserLetter();
         boolean running = true;
 
         while(running){
+            System.out.println("Welcome to your online ledger home screen! Here are the options: " +
+                    "\nD) Add deposit" +
+                    "\nP) Make payment" +
+                    "\nL) Ledger" +
+                    "\nX) Exit");
+
+            String choice = scanner.nextLine().toUpperCase();
+
             switch (choice){
-                case 'D' -> addDeposit();
-                case 'P' -> makePayment();
-                case 'L' -> displayLedger();
-                case 'X' -> {
+                case "D" -> addDeposit();
+                case "P" -> addPayment();
+                case "L" -> displayLedger();
+                case "X" -> {
                     running = false;
                     System.out.println("Exiting the system, see you again! ");
                 }
                 default -> System.out.println("Invalid input, try again. ");
             }
         }
+    }
+
+    // for test: generate a given number of transactions and save to file
+    private static void generateRandomTransactions(int number){
+
     }
 
     private static void loadTransactions(String fileName) {
@@ -51,10 +58,9 @@ public class Main {
             while((input = bufferedReader.readLine()) != null){
                 String[] fields = input.split("\\|");
 
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                Date date = dateFormat.parse(fields[0]);
+                LocalDate date = LocalDate.parse(fields[0]);
                 LocalTime time = LocalTime.parse(fields[1]);
-                LocalDateTime localDateTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).with(time);
+                LocalDateTime localDateTime = LocalDateTime.of(date, time);
 
                 String description = fields[2];
                 String vendor = fields[3];
@@ -73,25 +79,14 @@ public class Main {
     }
 
     private static void printArrayList(ArrayList<Transaction> list){
+        System.out.println("Printing the corresponding ledger transactions...");
         for(Transaction transaction : list)
             System.out.println(transaction);
     }
 
-    // foolproof method: guarentees to get letter (upper case) input from user
-    private static Character getUserLetter() {
-        System.out.println("Enter a letter: ");
-        while(true){
-            char c = scanner.nextLine().charAt(0);
-            if(Character.isLetter(c))
-                return Character.toUpperCase(c);
-            else
-                System.out.println("Invalid input, try again: ");
-        }
-    }
-
     // foolproof method: guarentees to get int input from user
     private static int getUserInt(){
-        System.out.println("Enter an integer: ");
+        System.out.println("Enter a choice in integer: ");
         while( ! scanner.hasNextInt()){
             System.out.println("Invalid input, enter an integer: ");
             scanner.next();
@@ -102,11 +97,33 @@ public class Main {
         return result;
     }
 
-    private static void addDeposit() {
-        ledger.sort(Comparator.comparing(Transaction::getDateTime));
+    private static void addDeposit() throws IOException {
+        System.out.println("Enter description: ");
+        String description = scanner.nextLine();
+        System.out.println("Enter vendor: ");
+        String vendor = scanner.nextLine();
+        System.out.println("Enter amount: ");
+        float amount  = scanner.nextFloat();
+        LocalDateTime dateTime = LocalDateTime.now();
+
+        Transaction t = new Transaction(dateTime, description, vendor, amount);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME, true));
+        writer.write(t.toCsvEntry());
+        writer.newLine(); // better than adding "\n"
+        System.out.println("Deposit added to ledger successfully! ");
     }
 
-    private static void makePayment(){
+    private static void addPayment() throws IOException {
+        System.out.println("Enter debit card last 4 digits: ");
+        String debitInfo;
+        while((debitInfo = scanner.nextLine()).length() != 4)
+            System.out.println("Invalid debit info, try again: ");
+        String description = "Invoice " + debitInfo + " paid";
+        System.out.println("Enter vendor: ");
+        String vendor = scanner.nextLine();
+        System.out.println("Enter amount: ");
+        float amount = scanner.nextFloat();
+
 
     }
 
@@ -119,14 +136,15 @@ public class Main {
                 "\nH) Home" +
                 "\nEnter your choice: ");
 
-        char choice = getUserLetter();
+        String choice = scanner.nextLine().toUpperCase();
 
         switch (choice){
-            case 'A' -> displayAllEntries();
-            case 'D' -> displayDeposits();
-            case 'P' -> displayPayments();
-            case 'R' -> displayReports();
-            default -> System.out.println("Going back to home screen...");
+            case "A" -> displayAllEntries();
+            case "D" -> displayDeposits();
+            case "P" -> displayPayments();
+            case "R" -> displayReports();
+            case "H" -> System.out.println("Going back to home page...");
+            default -> System.out.println("Invalid input, going back to home page...");
         }
     }
 
