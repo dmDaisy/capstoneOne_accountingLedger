@@ -5,6 +5,13 @@ import java.util.*;
 import java.io.*;
 import java.time.*;
 
+/*
+ * CSV file info:
+ * time range: 2023-01-01 to 2025-04-30
+ * vendor range:
+ *       names: Alex, Yuchen, name 1, name 2, name 3, name 4
+ *       companies: Apple, Microsoft, Google, Facebook, Tesla, Netflix, Amazon, YouTube, Uber, Walmart
+ * */
 public class Main {
 
     static ArrayList<Transaction> ledger = new ArrayList<>();
@@ -161,12 +168,9 @@ public class Main {
     private static void displayMonthToDate() {
         LocalDate today = LocalDate.now();
         int currentMonth = today.getMonthValue();
-        int currentYear = today.getYear();
-
-        System.out.println("\nAll transactions from start of " + currentMonth + " to today: ");
+        System.out.println("\nAll transactions from " + today.withDayOfMonth(1) + " to " + today);
         for (Transaction t : ledger) {
-            LocalDate date = t.getDateTime().toLocalDate();
-            if( ! (date.getMonthValue() == currentMonth && date.getYear() == currentYear))
+            if(t.getDateTime().toLocalDate().getMonthValue() != currentMonth)
                 break; // ledger is sorted so break once condition not met
             System.out.println(t);
         }
@@ -174,15 +178,34 @@ public class Main {
 
 
     private static void displayPreviousMonth() {
-
+        LocalDate today = LocalDate.now();
+        int lastMonth = today.minusMonths(1).getMonthValue();
+        int yearOfLastMonth = today.minusMonths(1).getYear();
+        System.out.println("\nAll transactions of last month: ");
+        for (Transaction t : ledger) {
+            LocalDate date = t.getDateTime().toLocalDate();
+            if(date.getMonthValue() == lastMonth && date.getYear() == yearOfLastMonth)
+                System.out.println(t);
+        }
     }
 
     private static void displayYearToDate() {
-
+        int currentYear = LocalDate.now().getYear();
+        System.out.println("\nAll transactions from start of " + currentYear + " to today:");
+        for (Transaction t : ledger) {
+            if (t.getDateTime().toLocalDate().getYear() != currentYear)
+                break; // ledger is sorted so break once year doesn't match
+            System.out.println(t);
+        }
     }
 
     private static void displayPreviousYear() {
-
+        int previousYear = LocalDate.now().minusYears(1).getYear();
+        System.out.println("\nAll transactions from last year:");
+        for (Transaction t : ledger) {
+            if (t.getDateTime().toLocalDate().getYear() == previousYear)
+                System.out.println(t);
+        }
     }
 
     private static void searchByVendor() {
@@ -195,7 +218,53 @@ public class Main {
     }
 
     private static void customSearch() {
+        try{
+            System.out.println("Hit Enter key to skip each of the following values prompted. ");
 
+            System.out.println("Enter start date in format of 'yyyy-MM-dd': ");
+            String startDateString = scanner.nextLine();
+            LocalDate startDate = startDateString.isEmpty() ? null : LocalDate.parse(startDateString);
+
+            System.out.println("Enter end date in format of 'yyyy-MM-dd': ");
+            String endDateString = scanner.nextLine();
+            LocalDate endDate = endDateString.isEmpty() ? null : LocalDate.parse(endDateString);
+
+            System.out.println("Enter description: ");
+            String description = scanner.nextLine().trim();
+
+            System.out.println("Enter vendor: ");
+            String vendor = scanner.nextLine().trim();
+
+            Float amount = null; // error if writing: float amount = null;
+            System.out.println("Reply Y if you wanna enter amount: ");
+            String choice = scanner.nextLine().trim().toUpperCase();
+            if(choice.equals("Y")){
+                System.out.println("Enter amount in float: ");
+                amount = getUserFloat();
+            }
+
+            System.out.println("\nSearch results below: ");
+//            boolean isMatch;
+//            int nullCounter;
+            for (Transaction t : ledger) {
+//                isMatch = true;
+//                nullCounter = 0;
+                LocalDate tDate = t.getDateTime().toLocalDate();
+
+                if(startDate == null && endDate == null && description.isEmpty() && vendor.isEmpty() && amount == null) continue;
+                if (startDate != null && tDate.isBefore(startDate)) continue;
+                if (endDate != null && tDate.isAfter(endDate)) continue;
+                if (!description.isEmpty() && !t.getDescription().toLowerCase().contains(description.toLowerCase())) continue;
+                if (!vendor.isEmpty() && !t.getVendor().equalsIgnoreCase(vendor)) continue;
+                if (amount != null && t.getAmount() != amount) continue;
+
+                System.out.println(t);
+            }
+
+        } catch (Exception e){
+            System.out.println("Invalid input, check and try again. ");
+            e.printStackTrace();
+        }
     }
 
 
@@ -213,8 +282,7 @@ public class Main {
 //
 //
     // for test: generate a given number of transactions and save to file
-    private static void generateRandomTransactions(int number){
-
+    private static void generateRandomTransactions(int number) {
     }
 
     // sort ledger, show the newest entries first
