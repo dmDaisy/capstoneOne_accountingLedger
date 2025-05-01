@@ -47,7 +47,7 @@ public class Main {
 
     private static void loadTransactions(String fileName) {
         try {
-            BufferedReader bufferedReader = new BufferedReader(new FileReader(FILE_NAME));
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName));
 
             String input;
 
@@ -86,7 +86,7 @@ public class Main {
 
         LocalDateTime dateTime = LocalDateTime.now();
 
-        saveTransaction(new Transaction(dateTime, description, vendor, amount), (valueIsPositive ? "deposit" : "payment"));
+        saveTransaction(new Transaction(dateTime, description, vendor, amount), (valueIsPositive ? "deposit" : "payment"), FILE_NAME);
     }
 
     private static void displayLedger(boolean needToSort) throws Exception {
@@ -235,12 +235,11 @@ public class Main {
             Float amount = null; // error if writing: float amount = null;
             System.out.println("Reply Y if you wanna search by amount: ");
             String choice = scanner.nextLine().trim().toUpperCase();
-            if(choice.equals("Y")){
-                System.out.println("Enter amount in float: ");
+            if(choice.equals("Y"))
                 amount = getUserFloat();
-            }
 
             System.out.println("\nSearch results below: ");
+            int nullCounter = 0;
             for (Transaction t : ledger) {
                 LocalDate tDate = t.getDateTime().toLocalDate();
 
@@ -305,11 +304,11 @@ public class Main {
      java syntax: try-with-resources
      automatically closes BufferedWriter even if an error occurs
     * */
-    private static void saveTransaction(Transaction t, String transactionType) {
+    private static void saveTransaction(Transaction t, String transactionType, String fileName) {
 
         ledger.add(t);
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME, true))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) {
             writer.write(t.toCsvEntry());
             writer.newLine(); // better than adding "\n"
             System.out.println("The following " + transactionType + " is successfully saved to your ledger file!");
