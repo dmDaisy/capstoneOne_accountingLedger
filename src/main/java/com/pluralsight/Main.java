@@ -21,8 +21,6 @@ public class Main {
     public static void main(String[] args) throws Exception{
 
         loadTransactions(FILE_NAME);
-//        printArrayList(ledger); // for test
-//        System.out.println("Absolute file path: " + new File(FILE_NAME).getAbsolutePath()); // for test
 
         boolean running = true;
         while(running){
@@ -176,7 +174,6 @@ public class Main {
         }
     }
 
-
     private static void displayPreviousMonth() {
         LocalDate today = LocalDate.now();
         int lastMonth = today.minusMonths(1).getMonthValue();
@@ -236,7 +233,7 @@ public class Main {
             String vendor = scanner.nextLine().trim();
 
             Float amount = null; // error if writing: float amount = null;
-            System.out.println("Reply Y if you wanna enter amount: ");
+            System.out.println("Reply Y if you wanna search by amount: ");
             String choice = scanner.nextLine().trim().toUpperCase();
             if(choice.equals("Y")){
                 System.out.println("Enter amount in float: ");
@@ -244,11 +241,7 @@ public class Main {
             }
 
             System.out.println("\nSearch results below: ");
-//            boolean isMatch;
-//            int nullCounter;
             for (Transaction t : ledger) {
-//                isMatch = true;
-//                nullCounter = 0;
                 LocalDate tDate = t.getDateTime().toLocalDate();
 
                 if(startDate == null && endDate == null && description.isEmpty() && vendor.isEmpty() && amount == null) continue;
@@ -267,23 +260,7 @@ public class Main {
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-    //  helper methods at the bottom
-//
-//
-//
-    // for test: generate a given number of transactions and save to file
-    private static void generateRandomTransactions(int number) {
-    }
+    /*  helper methods at the bottom  */
 
     // sort ledger, show the newest entries first
     private static void sortLedgerByTimeNewest(){
@@ -323,24 +300,17 @@ public class Main {
         return result;
     }
 
-//    private static void addTransactionToCsvFile(Transaction t, String transactionType) throws Exception{
-//        BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME, true));
-//        writer.write(t.toCsvEntry());
-//        writer.newLine(); // better than adding "\n"
-//        System.out.println("The following " + transactionType + " successfully added to ledger! ");
-//        System.out.println(t);
-//    }
-
-    // save transaction to ledger and CSV file
-    // java syntax: try-with-resources
-    // automatically closes BufferedWriter even if an error occurs
+    /*
+     save transaction to ledger and CSV file
+     java syntax: try-with-resources
+     automatically closes BufferedWriter even if an error occurs
+    * */
     private static void saveTransaction(Transaction t, String transactionType) {
 
         ledger.add(t);
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME, true))) {
             writer.write(t.toCsvEntry());
-//            System.out.println("CSV entry: " + t.toCsvEntry()); // for test
             writer.newLine(); // better than adding "\n"
             System.out.println("The following " + transactionType + " is successfully saved to your ledger file!");
             System.out.println(t);
@@ -348,5 +318,4 @@ public class Main {
             System.out.println("Error writing to file. ");
         }
     }
-
 }
